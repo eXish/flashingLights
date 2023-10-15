@@ -9,9 +9,11 @@ public class doubleNegativesScript : MonoBehaviour
 {
     public KMBombInfo Bomb;
     public KMAudio Audio;
+    public KMColorblindMode Colorblind;
     public KMSelectable[] button;
     public Renderer[] leds;
     public Texture[] ledColours;
+    public TextMesh[] colorblindTexts;
     private List<int> selectedColours = new List<int>();
     private List<int> selectedColours2 = new List<int>();
     private int increaser = 0;
@@ -34,6 +36,7 @@ public class doubleNegativesScript : MonoBehaviour
     private int answer1 = 0;
     private int answer2 = 0;
     private int pressedButton = 0;
+    private bool colorblindEnabled;
     private bool moduleSolved;
 
     //Logging
@@ -49,6 +52,7 @@ public class doubleNegativesScript : MonoBehaviour
             KMSelectable pressedButton = iterator;
             iterator.OnInteract += delegate () { OnButtonPress(pressedButton); return false; };
         }
+        colorblindEnabled = Colorblind.ColorblindModeActive;
     }
 
     void Start()
@@ -212,18 +216,23 @@ public class doubleNegativesScript : MonoBehaviour
         {
             yield return new WaitForSeconds(0.5f);
             leds[0].material.mainTexture = ledColours[0];
+            colorblindTexts[0].text = "";
             yield return new WaitForSeconds(0.5f);
             leds[0].material.mainTexture = ledColours[selectedColours[0 + increaser]];
+            if (colorblindEnabled)
+                colorblindTexts[0].text = ledColours[selectedColours[0 + increaser]].name[0].ToString().ToUpper();
             increaser++;
             if(increaser == 12)
             {
                 yield return new WaitForSeconds(0.5f);
                 leds[0].material.mainTexture = ledColours[0];
+                colorblindTexts[0].text = "";
                 increaser = 0;
                 yield return new WaitForSeconds(0.5f);
             }
         }
         leds[0].material.mainTexture = ledColours[0];
+        colorblindTexts[0].text = "";
     }
 
     IEnumerator sequence2()
@@ -233,23 +242,28 @@ public class doubleNegativesScript : MonoBehaviour
         {
             yield return new WaitForSeconds(0.3f);
             leds[1].material.mainTexture = ledColours[0];
+            colorblindTexts[1].text = "";
             yield return new WaitForSeconds(0.3f);
             leds[1].material.mainTexture = ledColours[selectedColours2[0 + increaser2]];
+            if (colorblindEnabled)
+                colorblindTexts[1].text = ledColours[selectedColours2[0 + increaser2]].name[0].ToString().ToUpper();
             increaser2++;
             if(increaser2 == 12)
             {
                 yield return new WaitForSeconds(0.3f);
                 leds[1].material.mainTexture = ledColours[0];
+                colorblindTexts[1].text = "";
                 increaser2 = 0;
                 yield return new WaitForSeconds(0.3f);
             }
         }
         leds[1].material.mainTexture = ledColours[0];
+        colorblindTexts[1].text = "";
     }
 
-    private string TwitchHelpMessage = @"Use '!{0} press 1' to press a button.";
+    private string TwitchHelpMessage = @"Use '!{0} press 1' to press a button. Use '!{0} colorblind' to toggle colorblind mode.";
 
-    IEnumerator ProcessTwitchCommand(string command) // Almost exactly like british slang :P
+    IEnumerator ProcessTwitchCommand(string command) // Almost exactly like british slang :P (but then colorblind support happened)
     {
         var parts = command.ToLowerInvariant().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -257,6 +271,11 @@ public class doubleNegativesScript : MonoBehaviour
         {
             yield return null;
             OnButtonPress(button[Int32.Parse(parts[1]) - 1]);
+        }
+        else if (parts.Length == 1 && parts[0] == "colorblind")
+        {
+            yield return null;
+            colorblindEnabled = !colorblindEnabled;
         }
     }
 }
